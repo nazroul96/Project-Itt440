@@ -1,0 +1,118 @@
+package main 
+import (
+	"bufio"
+	"database/sql"
+	"fmt"
+	"net"
+	"os"
+	"strings"
+	_ "github.com/lib/pq"
+
+)
+
+const (
+	host ="localhost"
+	port =5432
+	user="postgres"
+	password="ana"
+	dbname="mydb"
+)
+
+func main() {
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s"+ 
+			"dbname=%s sslmode=disable", 
+			host, port, user,dbname)
+	db, err := sql.Open("postgres",psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	err=db.Ping()
+	if err != nil{
+		panic(err)
+	}
+
+	fmt.Println("Succesfully connected")
+	fmt.Println("Launching server...")
+	ln, _ := net.Listen("tcp", ":8083")
+	connect, _ := ln.Accept()
+
+	for {
+
+		message, _ := bufio.NewReader(connect).ReadString('\n')
+		// output message received
+		fmt.Print("Message Received:", string(message))
+		// sample process for string received
+		newmessage := strings.ToUpper(message)
+		// send new string back to client
+		//connect.Write([]byte(newmessage + "\n"))
+
+		// use your own select statement
+		// this is just an example statement
+		statement, err := conn.Prepare("select studName from student where studID = " + newmessage)
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		rows, err := statement.Query() // execute our select statement
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		for rows.Next() {
+			var title string
+			rows.Scan(&title)
+			fmt.Println("Student :", title)
+			connect.Write([]byte(title + "\n"))
+		}
+
+		tempor, _ := bufio.NewReader(connect).ReadString('\n')
+		// output message received
+		fmt.Print("Message Received:", string(tempor))
+		// sample process for string received
+		//newName := strings.ToUpper(tempor)
+		connect.Write([]byte("ok" + "\n"))
+
+		pastName, _ := bufio.NewReader(connect).ReadString('\n')
+		// output message received
+		fmt.Print("Message Received:", string(pastName))
+		// sample process for string received
+		newName := strings.ToUpper(pastName)
+
+		pastG, _ := bufio.NewReader(connect).ReadString('\n')
+		// output message received
+		fmt.Print("Message Received:", string(pastG))
+		// sample process for string received
+		newGender := strings.ToUpper(pastG)
+
+		//fmt.Println(newmessage)
+
+		stmt, err := conn.Prepare("update student set studName=?, gender=? where studID=" + newmessage)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		res, err := stmt.Exec(newName, newGender)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		affect, err := res.RowsAffected()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		fmt.Println(affect)
+
+		conn.Close()
+	}	
+}
+
