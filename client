@@ -1,0 +1,52 @@
+package main
+
+import "net"
+import "fmt"
+import "bufio"
+import "os"
+
+func main() {
+
+	//var x int
+	//var z int
+	var u string
+	// connect to this socket
+	conn, _ := net.Dial("tcp", "68.245.171.115:8083")
+	for {
+		// read in input from stdin
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Enter student ID: ")
+		text, _ := reader.ReadString('\n')
+		// send to socket
+		fmt.Fprintf(conn, text+"\n")
+		// listen for reply
+		message, _ := bufio.NewReader(conn).ReadString('\n')
+		fmt.Print("Student name: " + message)
+		fmt.Print("Do you want to update this student? [Y/N]")
+		fmt.Scanf("%s", &u)
+		if u == "Y" || u == "y" {
+			tempor := bufio.NewReader(os.Stdin)
+			fmt.Print("Enter student name: ")
+			tempor2, _ := tempor.ReadString('\n')
+			// send to socket
+			fmt.Fprintf(conn, tempor2+"\n")
+			mesej, _ := bufio.NewReader(conn).ReadString('\n')
+			fmt.Print("From server: " + mesej)
+			name := bufio.NewReader(os.Stdin)
+			fmt.Print("Enter student name: ")
+			studName, _ := name.ReadString('\n')
+			// send to socket
+			fmt.Fprintf(conn, studName+"\n")
+
+			bacaG := bufio.NewReader(os.Stdin)
+			fmt.Print("Enter student gender: ")
+			gend, _ := bacaG.ReadString('\n')
+			// send to socket
+			fmt.Fprintf(conn, gend+"\n")
+			fmt.Println("update")
+			break
+		} else {
+			break
+		}
+	}
+}
